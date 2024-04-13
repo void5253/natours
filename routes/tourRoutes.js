@@ -9,7 +9,11 @@ import {
 
 import { protect, restrictTo } from "../controllers/authController.js";
 
+import { router as reviewsRouter } from "./reviewRoutes.js";
+
 export const router = express.Router();
+
+router.use("/:tourId/reviews", reviewsRouter);
 
 router
   .route("/")

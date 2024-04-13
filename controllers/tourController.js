@@ -9,15 +9,13 @@ const getAllTours = catchAsync(async (req, res) => {
     .filter()
     .sort()
     .fields();
-  const tours = await queryBuilder.query.exec();
+  const tours = await queryBuilder.query.getGuides().exec();
   res.status(200).json(tours);
 });
 
 const getTour = catchAsync(async (req, res) => {
-  const tour = await Tour.findById(req.params.id).populate({
-    path: "guides",
-    select: "-passwordChangedAt",
-  });
+  const n = req.query.n || 10;
+  const tour = await Tour.findById(req.params.id).getGuides().getReviews(n);
   if (!tour) throw new AppError("Tour not found!", 404);
   res.status(200).json({
     status: "success",
