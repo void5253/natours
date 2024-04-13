@@ -1,7 +1,8 @@
 import express from "express";
 import morgan from "morgan";
-import { router as toursRouter } from "./routes/toursRoutes.js";
+import { router as toursRouter } from "./routes/tourRoutes.js";
 import { router as usersRouter } from "./routes/userRoutes.js";
+import { router as reviewsRouter } from "./routes/reviewRoutes.js";
 import process from "node:process";
 import { globalErrorHandler } from "./controllers/errorController.js";
 import rateLimit from "express-rate-limit";
@@ -43,8 +44,8 @@ console.log(process.env.NODE_ENV);
 
 //RateLimiter
 const limiter = rateLimit({
-  max: 3,
-  windowMs: 20 * 60 * 60 * 1000,
+  max: 10,
+  windowMs: 60 * 60 * 1000,
   message: "Too many requests from this IP, please try again later",
 });
 
@@ -53,4 +54,5 @@ app.use("/api", limiter);
 // Routes
 app.use("/api/v1/tours", toursRouter);
 app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/reviews", reviewsRouter);
 app.use(globalErrorHandler);

@@ -14,7 +14,10 @@ const getAllTours = catchAsync(async (req, res) => {
 });
 
 const getTour = catchAsync(async (req, res) => {
-  const tour = await Tour.findById(req.params.id);
+  const tour = await Tour.findById(req.params.id).populate({
+    path: "guides",
+    select: "-passwordChangedAt",
+  });
   if (!tour) throw new AppError("Tour not found!", 404);
   res.status(200).json({
     status: "success",
@@ -41,7 +44,7 @@ const createTour = catchAsync(async (req, res) => {
 const deleteTour = catchAsync(async (req, res) => {
   const tour = await Tour.findByIdAndDelete(req.params.id);
   if (!tour) throw new AppError("Tour not found!", 404);
-  res.status(200).json({ msg: "Tour deleted" });
+  res.status(204).json({ msg: "Tour deleted" });
 });
 
 export { getAllTours, getTour, createTour, updateTour, deleteTour };

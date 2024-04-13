@@ -11,7 +11,10 @@ import { protect, restrictTo } from "../controllers/authController.js";
 
 export const router = express.Router();
 
-router.route("/").get(getAllTours).post(createTour);
+router
+  .route("/")
+  .get(getAllTours)
+  .post(protect, restrictTo("admin"), createTour);
 router
   .route("/:id")
   .get(getTour)

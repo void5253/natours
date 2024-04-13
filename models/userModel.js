@@ -25,6 +25,7 @@ const userSchema = new Schema({
   passwordConfirm: {
     type: String,
     required: [true, "Please confirm password!"],
+    minlength: [8, "Password should contain at least 8 characters"],
     validate: {
       // This only works on CREATE and SAVE
       validator: function (pc) {
@@ -79,7 +80,7 @@ userSchema.methods.createPasswordResetToken = function () {
     .update(resetToken)
     .digest("hex");
   this.passwordResetTokenExpiresIn = Date.now() + 10 * 1000 * 60;
-  console.log({ resetToken }, this.passwordResetToken);
+  //console.log({ resetToken }, this.passwordResetToken);
   return resetToken;
 };
 

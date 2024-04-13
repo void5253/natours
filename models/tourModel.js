@@ -1,5 +1,23 @@
 import { Schema, model } from "mongoose";
 
+const locationSchema = new Schema({
+  type: {
+    type: String,
+    enum: ["Point"],
+    required: true,
+  },
+  coordinates: {
+    type: [Number],
+    required: true,
+  },
+  day: Number,
+  address: String,
+  description: {
+    type: String,
+    required: true,
+  },
+});
+
 const tourSchema = new Schema({
   name: {
     type: String,
@@ -70,6 +88,20 @@ const tourSchema = new Schema({
     select: false,
   },
   startDates: [Date],
+  startLocation: {
+    type: locationSchema,
+    required: true,
+  },
+  locations: {
+    type: [locationSchema],
+    required: true,
+  },
+  guides: [
+    {
+      type: Schema.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 const Tour = model("Tour", tourSchema);
