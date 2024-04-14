@@ -5,9 +5,11 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  getMe,
   updateMe,
   deleteMe,
 } from "../controllers/userController.js";
+
 import {
   signup,
   login,
@@ -25,17 +27,18 @@ router.route("/login").post(login);
 
 router.route("/forgotPassword").post(forgotPassword);
 router.route("/resetPassword/:token").patch(resetPassword);
-router.route("/updatePassword").patch(protect, updatePassword);
 
-router.route("/updateMe").patch(protect, updateMe);
-router.route("/deleteMe").delete(protect, deleteMe);
+// protect all routes after this middleware
+router.use(protect);
 
-router
-  .route("/")
-  .get(protect, restrictTo("admin"), getAllUsers)
-  .post(protect, restrictTo("admin"), createUser);
-router
-  .route("/:id")
-  .get(protect, restrictTo("admin"), getUser)
-  .patch(protect, restrictTo("admin"), updateUser)
-  .delete(protect, restrictTo("admin"), deleteUser);
+router.route("/updatePassword").patch(updatePassword);
+
+router.route("/me").get(getMe, getUser);
+router.route("/updateMe").patch(updateMe);
+router.route("/deleteMe").delete(deleteMe);
+
+//Only admin can create users with these routes.
+router.use(restrictTo("admin"));
+
+router.route("/").get(getAllUsers).post(createUser);
+router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);

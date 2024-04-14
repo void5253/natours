@@ -3,51 +3,54 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 
-const userSchema = new Schema({
-  name: {
-    type: String,
-    required: [true, "Please tell us your name!"],
-  },
-  email: {
-    type: String,
-    required: [true, "Please provide your email"],
-    unique: true,
-    lowercase: true,
-    validate: [validator.isEmail, "Please provide valid email!"],
-  },
-  photo: String,
-  password: {
-    type: String,
-    required: [true, "Please provide a password"],
-    minlength: [8, "Password should contain at least 8 characters"],
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: [true, "Please confirm password!"],
-    minlength: [8, "Password should contain at least 8 characters"],
-    validate: {
-      // This only works on CREATE and SAVE
-      validator: function (pc) {
-        return pc === this.password;
+const userSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Please tell us your name!"],
+    },
+    email: {
+      type: String,
+      required: [true, "Please provide your email"],
+      unique: true,
+      lowercase: true,
+      validate: [validator.isEmail, "Please provide valid email!"],
+    },
+    photo: String,
+    password: {
+      type: String,
+      required: [true, "Please provide a password"],
+      minlength: [8, "Password should contain at least 8 characters"],
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, "Please confirm password!"],
+      minlength: [8, "Password should contain at least 8 characters"],
+      validate: {
+        // This only works on CREATE and SAVE
+        validator: function (pc) {
+          return pc === this.password;
+        },
+        message: "Password couldn't be confirmed!",
       },
-      message: "Password couldn't be confirmed!",
+    },
+    passwordChangedAt: Date,
+    role: {
+      type: String,
+      enum: ["user", "guide", "lead-guide", "admin"],
+      default: "user",
+    },
+    passwordResetToken: String,
+    passwordResetTokenExpiresIn: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
     },
   },
-  passwordChangedAt: Date,
-  role: {
-    type: String,
-    enum: ["user", "guide", "admin"],
-    default: "user",
-  },
-  passwordResetToken: String,
-  passwordResetTokenExpiresIn: Date,
-  active: {
-    type: Boolean,
-    default: true,
-    select: false,
-  },
-});
+  { id: false }
+);
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

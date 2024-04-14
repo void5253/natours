@@ -50,9 +50,10 @@ const tourSchema = new Schema(
     },
     ratingsAverage: {
       type: Number,
-      default: 4.5,
+      default: 0,
       min: [0, "Rating must be above 0"],
       max: [5, "Rating must be below 5"],
+      set: (val) => Math.round(val * 100) / 100,
     },
     ratingsQuantity: {
       type: Number,
@@ -104,7 +105,7 @@ const tourSchema = new Schema(
       },
     ],
   },
-  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 //Virtual populate
@@ -114,20 +115,24 @@ tourSchema.virtual("reviews", {
   localField: "_id",
 });
 
-tourSchema.query.getGuides = function () {
-  return this.populate({
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
     path: "guides",
-    select: "-passwordChangedAt",
+    select: "-passwordChangedAt -__v",
   });
-};
+  next();
+});
 
-tourSchema.query.getReviews = function (n) {
-  return this.populate({
+tourSchema.pre("findOne", function (next) {
+  this.populate({
     path: "reviews",
-    select: "-__v",
-    limit: n,
+    select: "-createdAt -__v",
+    limit: 3,
   });
-};
+  next();
+});
+
+tourSchema.index({ price: 1, ratingsAverage: -1 });
 
 const Tour = model("Tour", tourSchema);
 export { Tour };

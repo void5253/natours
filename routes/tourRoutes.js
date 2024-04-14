@@ -18,9 +18,9 @@ router.use("/:tourId/reviews", reviewsRouter);
 router
   .route("/")
   .get(getAllTours)
-  .post(protect, restrictTo("admin"), createTour);
+  .post(protect, restrictTo("admin", "lead-guide"), createTour);
 router
   .route("/:id")
   .get(getTour)
-  .patch(protect, restrictTo("guide", "admin"), updateTour)
-  .delete(protect, restrictTo("admin"), deleteTour);
+  .patch(protect, restrictTo("lead-guide", "admin"), updateTour)
+  .delete(protect, restrictTo("lead-guide", "admin"), deleteTour);

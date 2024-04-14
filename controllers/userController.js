@@ -2,6 +2,18 @@ import { User } from "../models/userModel.js";
 import { ApiFeatures } from "../utils/apiFeatures.js";
 import { AppError } from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import {
+  deleteOne,
+  updateOne,
+  createOne,
+  getOne,
+  getAll,
+} from "./handlerFactory.js";
+
+const getMe = (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+};
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -10,53 +22,6 @@ const filterObj = (obj, ...allowedFields) => {
   });
   return newObj;
 };
-
-const getAllUsers = catchAsync(async (req, res) => {
-  const queryBuilder = new ApiFeatures(User.find(), req.query)
-    .filter()
-    .sort()
-    .fields();
-  const users = await queryBuilder.query.exec();
-  res.status(200).json({
-    status: "success",
-    users,
-  });
-});
-
-const getUser = catchAsync(async (req, res) => {
-  const user = await User.findById(req.params.id);
-  if (!user) throw new AppError("User not found!", 404);
-  res.status(200).json(user);
-});
-
-const updateUser = catchAsync(async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  if (!user) throw new AppError("User not found!", 404);
-  res.status(200).json(user);
-});
-
-const createUser = catchAsync(async (req, res) => {
-  const { name, email, password, passwordConfirm } = req.body;
-  const newUser = await User.create({
-    name,
-    email,
-    password,
-    passwordConfirm,
-  });
-  res.status(201).json({
-    status: "success",
-    data: { newUser },
-  });
-});
-
-const deleteUser = catchAsync(async (req, res) => {
-  const user = await User.findByIdAndDelete(req.params.id);
-  if (!user) throw new AppError("User not found!", 404);
-  res.status(200).json({ msg: "Tour deleted!" });
-});
 
 const updateMe = catchAsync(async (req, res, next) => {
   if (req.body.password || req.body.passwordConfirm) {
@@ -75,12 +40,19 @@ const deleteMe = catchAsync(async (req, res) => {
   res.status(204);
 });
 
+const getAllUsers = getAll(User);
+const getUser = getOne(User);
+const updateUser = updateOne(User);
+const createUser = createOne(User);
+const deleteUser = deleteOne(User);
+
 export {
   getAllUsers,
   createUser,
   updateUser,
   deleteUser,
   getUser,
+  getMe,
   updateMe,
   deleteMe,
 };
