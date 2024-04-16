@@ -1,25 +1,45 @@
 import process from "node:process";
 import { AppError } from "../utils/appError.js";
 
-function sendErrorProduction(err, res) {
-  if (err.isOperational) {
-    res.status(err.statusCode).json({ status: err.status, msg: err.message });
+function sendErrorProduction(err, req, res) {
+  if (req.originalUrl.startsWith("/api")) {
+    if (err.isOperational) {
+      res.status(err.statusCode).json({ status: err.status, msg: err.message });
+    } else {
+      console.error(err);
+      res.status(500).json({
+        status: err.status,
+        msg: "Something went wrong!",
+      });
+    }
   } else {
-    console.error(err);
-    res.status(500).json({
-      status: err.status,
-      msg: "Something went wrong!",
-    });
+    if (err.isOperational) {
+      res
+        .status(err.statusCode)
+        .render("error", { title: "Error", msg: err.message });
+    } else {
+      console.error(err);
+      res
+        .status(err.statusCode)
+        .render("error", { title: "Error", msg: "Something went wrong!" });
+    }
   }
 }
 
-function sendErrorDev(err, res) {
-  res.status(err.statusCode).json({
-    status: err.status,
-    msg: err.message,
-    error: err,
-    stack: err.stack,
-  });
+function sendErrorDev(err, req, res) {
+  if (req.originalUrl.startsWith("/api")) {
+    res.status(err.statusCode).json({
+      status: err.status,
+      msg: err.message,
+      error: err,
+      stack: err.stack,
+    });
+  } else {
+    res.status(err.statusCode).render("error", {
+      title: "Error!",
+      msg: err.message,
+    });
+  }
 }
 
 const handleCastErrorDB = (err) => {
@@ -64,8 +84,10 @@ const globalErrorHandler = (err, req, res, next) => {
   else if (err.name === "TokenExpiredError") error = handleJWTExpiredError();
   else error = { ...err, message: err.message, stack: err.stack };
 
-  if (process.env.NODE_ENV === "production") sendErrorProduction(error, res);
-  else if (process.env.NODE_ENV === "development") sendErrorDev(error, res);
+  if (process.env.NODE_ENV === "production")
+    sendErrorProduction(error, req, res);
+  else if (process.env.NODE_ENV === "development")
+    sendErrorDev(error, req, res);
 };
 
 export { globalErrorHandler };

@@ -51,13 +51,21 @@ const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+const logout = (req, res, next) => {
+  res.cookie("jwt", "logOut Cookie", {
+    expires: new Date(Date.now() + 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: "success" });
+};
+
 const protect = catchAsync(async (req, res, next) => {
   //1. Check if jwt is present
   let token;
   const { authorization } = req.headers;
   if (authorization?.startsWith("Bearer")) {
     token = authorization.split(" ")[1];
-  }
+  } else if (req.cookies.jwt) token = req.cookies.jwt;
   //console.log(token);
 
   //2. Verify jwt
@@ -81,9 +89,35 @@ const protect = catchAsync(async (req, res, next) => {
     );
   }
 
+  res.locals.user = user;
   req.user = user;
   next();
 });
+
+const isLoggedIn = async (req, res, next) => {
+  //1. Check if jwt is present
+  try {
+    let token;
+    if (req.cookies.jwt) token = req.cookies.jwt;
+    if (!token) return next();
+
+    //2. Verify jwt
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    //3. User for jwt exists?
+    const user = await User.findById(decoded.id).byActive();
+    if (!user) return next();
+
+    //4. Check if user changed password after jwt was issued
+    if (user.passwordHasChanged(decoded.iat)) return next();
+
+    // Logged in user present
+    res.locals.user = user;
+    next();
+  } catch (err) {
+    return next();
+  }
+};
 
 const restrictTo = (...roles) => {
   return (req, res, next) => {
@@ -178,9 +212,11 @@ const updatePassword = async (req, res, next) => {
 export {
   signup,
   login,
+  logout,
   protect,
   restrictTo,
   forgotPassword,
   resetPassword,
   updatePassword,
+  isLoggedIn,
 };

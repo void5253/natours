@@ -104,6 +104,7 @@ const tourSchema = new Schema(
         ref: "User",
       },
     ],
+    slug: String,
   },
   { id: false, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
@@ -113,6 +114,11 @@ tourSchema.virtual("reviews", {
   ref: "Review",
   foreignField: "tour",
   localField: "_id",
+});
+
+tourSchema.pre("save", function (next) {
+  this.slug = slugify(this.name, { lower: true });
+  next();
 });
 
 tourSchema.pre(/^find/, function (next) {
@@ -127,12 +133,14 @@ tourSchema.pre("findOne", function (next) {
   this.populate({
     path: "reviews",
     select: "-createdAt -__v",
-    limit: 3,
+    limit: 5,
   });
   next();
 });
 
 tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ startLocation: "2dsphere" });
+tourSchema.index({ slug: 1 });
 
 const Tour = model("Tour", tourSchema);
 export { Tour };

@@ -8,11 +8,14 @@ import {
   getMe,
   updateMe,
   deleteMe,
+  uploadUserPhoto,
+  resizeUserPhoto,
 } from "../controllers/userController.js";
 
 import {
   signup,
   login,
+  logout,
   protect,
   forgotPassword,
   resetPassword,
@@ -24,6 +27,7 @@ export const router = express.Router();
 
 router.route("/signup").post(signup);
 router.route("/login").post(login);
+router.route("/logout").get(logout);
 
 router.route("/forgotPassword").post(forgotPassword);
 router.route("/resetPassword/:token").patch(resetPassword);
@@ -34,7 +38,7 @@ router.use(protect);
 router.route("/updatePassword").patch(updatePassword);
 
 router.route("/me").get(getMe, getUser);
-router.route("/updateMe").patch(updateMe);
+router.route("/updateMe").patch(uploadUserPhoto, resizeUserPhoto, updateMe);
 router.route("/deleteMe").delete(deleteMe);
 
 //Only admin can create users with these routes.

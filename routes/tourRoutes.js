@@ -5,6 +5,8 @@ import {
   createTour,
   updateTour,
   deleteTour,
+  getToursWithin,
+  getDistances,
 } from "../controllers/tourController.js";
 
 import { protect, restrictTo } from "../controllers/authController.js";
@@ -24,3 +26,9 @@ router
   .get(getTour)
   .patch(protect, restrictTo("lead-guide", "admin"), updateTour)
   .delete(protect, restrictTo("lead-guide", "admin"), deleteTour);
+
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(getToursWithin);
+
+router.route("/distances/:latlng/unit/:unit").get(getDistances);

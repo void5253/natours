@@ -38,6 +38,7 @@ const changeAvgRating = async (tourId, rating, mult) => {
   ratingsAverage =
     (ratingsAverage * ratingsQuantity + mult * rating) /
     (ratingsQuantity + mult * 1);
+  ratingsAverage = Math.floor(ratingsAverage * 100) / 100;
   ratingsQuantity = ratingsQuantity + mult * 1;
   console.log({ ratingsAverage, ratingsQuantity });
   await Tour.findByIdAndUpdate(
